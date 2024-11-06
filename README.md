@@ -12,11 +12,9 @@ Code for "HumanMAC: Masked Motion Completion for Human Motion Prediction".
 
 ## 📢 News
 
-**[2024/05/06]: We release the fastest controllable motion generation model ([MotionLCM](https://github.com/Dai-Wenxun/MotionLCM)).**
-
 **[2023/12/19]: HumanMAC works as a motion prediction module in [Interactive Humanoid](https://arxiv.org/pdf/2312.08983.pdf).**
 
-**[2023/10/21]: Check out my ICML-24 work [HumanTOMATO](https://lhchen.top/HumanTOMATO), the FIRST attempt to generate whole-body motions with text description.**
+**[2023/10/21]: Check out my latest work [HumanTOMATO](https://lhchen.top/HumanTOMATO), the FIRST attempt to generate whole-body motions with text description.**
 
 **[2023/10/17]: Check out my latest open-source project [UniMoCap](https://github.com/LinghaoChan/UniMoCap), a unifier for mocap-based text-motion datasets.**
 
@@ -165,11 +163,10 @@ Please consider citing our paper if you find it helpful in your research:
 
 ```
 @inproceedings{chen2023humanmac,
-  title={Humanmac: Masked motion completion for human motion prediction},
-  author={Chen, Ling-Hao and Zhang, Jiawei and Li, Yewen and Pang, Yiren and Xia, Xiaobo and Liu, Tongliang},
-  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
-  pages={9544--9555},
-  year={2023}
+	title={HumanMAC: Masked Motion Completion for Human Motion Prediction},
+	author={Chen, Ling-Hao and Zhang, Jiawei and Li, Yewen and Pang, Yiren and Xia, Xiaobo and Liu, Tongliang},
+	journal={Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+	year={2023}
 }
 ```
 

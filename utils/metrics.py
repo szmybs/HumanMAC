@@ -23,7 +23,7 @@ def compute_all_metrics(pred, gt, gt_multi):
     diversity = dist_diverse.mean()
 
     gt_multi = torch.from_numpy(gt_multi).to('cuda')
-    gt_multi_gt = torch.cat([gt_multi, gt], dim=0)
+    gt_multi_gt = torch.cat([gt_multi, gt], dim=0) 
 
     gt_multi_gt = gt_multi_gt[None, ...]
     pred = pred[:, None, ...]

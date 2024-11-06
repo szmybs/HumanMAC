@@ -1,10 +1,16 @@
 import csv
-
+import time
 import pandas as pd
 from utils.metrics import *
 from tqdm import tqdm
 from utils import *
 from utils.script import sample_preprocessing
+
+from FID.fid_classifier import classifier_fid_factory
+from FID.fid import fid
+
+from thop import profile
+from thop import clever_format
 
 tensor = torch.tensor
 DoubleTensor = torch.DoubleTensor
@@ -13,6 +19,18 @@ LongTensor = torch.LongTensor
 ByteTensor = torch.ByteTensor
 ones = torch.ones
 zeros = torch.zeros
+
+
+class OneHumanMAC(torch.nn.Module):
+    def __init__(self, diffusion) -> None:
+        super().__init__()
+        self.diffusion = diffusion
+    
+    def forward(self, traj, cfg, model_select):
+        mode_dict, traj_dct, traj_dct_cond = sample_preprocessing(traj, cfg, mode='metrics')
+        sampled_motion = self.diffusion.sample_ddim(model_select, traj_dct, traj_dct_cond, mode_dict)
+        return sampled_motion
+    
 
 
 def compute_stats(diffusion, multimodal_dict, model, logger, cfg):
@@ -24,6 +42,7 @@ def compute_stats(diffusion, multimodal_dict, model, logger, cfg):
     # TODO reduce computation complexity
     def get_prediction(data, model_select):
         traj_np = data[..., 1:, :].transpose([0, 2, 3, 1])
+        # traj_np = data[:50, :, 1:, :].transpose([0, 2, 3, 1])
         traj = tensor(traj_np, device=cfg.device, dtype=torch.float32)
         traj = traj.reshape([traj.shape[0], -1, traj.shape[-1]]).transpose(1, 2)
         # traj.shape: [*, t_his + t_pre, 3 * joints_num]
@@ -33,6 +52,26 @@ def compute_stats(diffusion, multimodal_dict, model, logger, cfg):
                                                traj_dct,
                                                traj_dct_cond,
                                                mode_dict)
+        
+        '''
+        one_humanmac = OneHumanMAC(diffusion)
+        macs, params = profile(one_humanmac, inputs=(traj, cfg, model_select))
+        macs, params = clever_format([macs, params], "%.3f")
+        print("flops = ", macs * 2) 
+        print("params = ", params)
+
+        print('warm up ... \n')
+        for _ in range(10):
+            start = time.time()
+            outputs = one_humanmac(traj, cfg, model_select)
+            torch.cuda.synchronize()
+            end = time.time()
+            print('Time:{}ms'.format((end-start)*1000))
+
+        with torch.autograd.profiler.profile(enabled=True, use_cuda=True, record_shapes=False, profile_memory=False) as prof:
+            outputs = one_humanmac(traj, cfg, model_select)
+        print(prof.key_averages().table(sort_by="cuda_time_total"))  
+        '''
 
         traj_est = torch.matmul(cfg.idct_m_all[:, :cfg.n_pre], sampled_motion)
         # traj_est.shape (K, 125, 48)
@@ -48,7 +87,8 @@ def compute_stats(diffusion, multimodal_dict, model, logger, cfg):
     stats_names = ['APD', 'ADE', 'FDE', 'MMADE', 'MMFDE']
     stats_meter = {x: {y: AverageMeter() for y in ['HumanMAC']} for x in stats_names}
 
-    K = 50
+    # K = 50
+    K = 5
     pred = []
     for i in tqdm(range(0, K), position=0):
         # It generates a prediction for all samples in the test set
@@ -59,7 +99,7 @@ def compute_stats(diffusion, multimodal_dict, model, logger, cfg):
             pred = np.concatenate(pred, axis=0)
             # pred [50, 5187, 125, 48] in h36m
             pred = pred[:, :, cfg.t_his:, :]
-            # Use GPU to accelerate
+            # Use GPU to accelerate        
             try:
                 gt_group = torch.from_numpy(gt_group).to('cuda')
             except:
@@ -68,6 +108,29 @@ def compute_stats(diffusion, multimodal_dict, model, logger, cfg):
                 pred = torch.from_numpy(pred).to('cuda')
             except:
                 pass
+            
+            '''
+            _pred =  torch.swapaxes(pred, -2, -1)
+            _gt = torch.swapaxes(gt_group, -2, -1)
+            # _gt = gt_group
+
+            classifier = classifier_fid_factory(_pred.device)
+            pred_list = []
+            for i in range(_pred.shape[0]):
+                pred_activations = classifier.get_fid_features(motion_sequence=_pred[i]).cpu().data.numpy()
+                pred_list.append(pred_activations)
+            pred_list = np.concatenate(pred_list, 0)    
+        
+            gt_activations = classifier.get_fid_features(motion_sequence=_gt)
+            gt_list = gt_activations.repeat(K, 1, 1).cpu().data.numpy()
+            
+            pred_list = np.reshape(pred_list, newshape=(-1, pred_list.shape[-1]))
+            gt_list = np.reshape(gt_list, newshape=(-1, gt_list.shape[-1]))
+                
+            results_fid = fid(pred_list, gt_list)
+            print(results_fid)
+            '''
+            
             # pred [50, 5187, 100, 48]
             for j in range(0, num_samples):
                 apd, ade, fde, mmade, mmfde = compute_all_metrics(pred[:, j, :, :],

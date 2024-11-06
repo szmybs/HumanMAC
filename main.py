@@ -16,7 +16,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--cfg',
-                        default='h36m', help='h36m or humaneva')
+                        default='humaneva', help='h36m or humaneva')
     parser.add_argument('--mode', default='train', help='train / eval / pred / switch/ control/ zero_shot')
     parser.add_argument('--iter', type=int, default=0)
     parser.add_argument('--seed', type=int, default=0)

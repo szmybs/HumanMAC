@@ -14,9 +14,7 @@
 
 ## 更新信息
 
-**[2024/05/06]: 我们发布了最快的实时可控动作生成模型[MotionLCM](https://github.com/Dai-Wenxun/MotionLCM)。**
-
-**[2023/12/19]: HumanMAC在[Interactive Humanoid](https://arxiv.org/pdf/2312.08983.pdf)中作为动作预测模块使用。**
+****[2023/12/19]: HumanMAC在[Interactive Humanoid](https://arxiv.org/pdf/2312.08983.pdf)中作为动作预测模块使用。****
 
 **[2023/10/21]: 欢迎查看最新工作[HumanTOMATO](https://lhchen.top/HumanTOMATO)，首个文本驱动全身动作生成系统。**
 
@@ -167,11 +165,10 @@ python main.py --cfg humaneva --mode eval --ckpt ./checkpoints/humaneva_ckpt.pt
 
 ```
 @inproceedings{chen2023humanmac,
-  title={Humanmac: Masked motion completion for human motion prediction},
-  author={Chen, Ling-Hao and Zhang, Jiawei and Li, Yewen and Pang, Yiren and Xia, Xiaobo and Liu, Tongliang},
-  booktitle={Proceedings of the IEEE/CVF International Conference on Computer Vision},
-  pages={9544--9555},
-  year={2023}
+	title={HumanMAC: Masked Motion Completion for Human Motion Prediction},
+	author={Chen, Ling-Hao and Zhang, Jiawei and Li, Yewen and Pang, Yiren and Xia, Xiaobo and Liu, Tongliang},
+	journal={Proceedings of the IEEE/CVF International Conference on Computer Vision (ICCV)},
+	year={2023}
 }
 ```
 
