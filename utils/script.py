@@ -100,6 +100,30 @@ def get_multimodal_gt_full(logger, dataset_multi_test, args, cfg):
             'num_samples': num_samples}
 
 
+def get_gt(logger, dataset_multi_test, args, cfg):
+    """
+    calculate the multi-modal data
+    """
+    logger.info('preparing full evaluation dataset...')
+    data_group = []
+    num_samples = 0
+    data_gen_multi_test = dataset_multi_test.iter_generator(step=cfg.t_his)
+    for data, _ in data_gen_multi_test:
+        num_samples += 1
+        data_group.append(data)
+    data_group = np.concatenate(data_group, axis=0)
+    all_data = data_group[..., 1:, :].reshape(data_group.shape[0], data_group.shape[1], -1)
+    gt_group = all_data[:, cfg.t_his:, :]
+    gt_group = all_data[:, cfg.t_his:, :]
+
+    logger.info('=' * 80)
+    logger.info('done...')
+    logger.info('=' * 80)
+    return {'data_group': data_group,
+            'gt_group': gt_group,
+            'num_samples': num_samples}
+
+
 def display_exp_setting(logger, cfg):
     """
     log the current experiment settings.

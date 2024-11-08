@@ -11,13 +11,14 @@ import torch
 from tensorboardX import SummaryWriter
 from utils.training import Trainer
 from utils.evaluation import compute_stats
+from utils.kde import compute_kde
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--cfg',
-                        default='humaneva', help='h36m or humaneva')
-    parser.add_argument('--mode', default='train', help='train / eval / pred / switch/ control/ zero_shot')
+                        default='h36m', help='h36m or humaneva')
+    parser.add_argument('--mode', default='kde', help='train / eval / pred / switch/ control/ zero_shot')
     parser.add_argument('--iter', type=int, default=0)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--device', type=str,
@@ -73,6 +74,13 @@ if __name__ == '__main__':
         # prepare full evaluation dataset
         multimodal_dict = get_multimodal_gt_full(logger, dataset_multi_test, args, cfg)
         compute_stats(diffusion, multimodal_dict, model, logger, cfg)
+    
+    elif args.mode == 'kde':
+        ckpt = torch.load(args.ckpt)
+        model.load_state_dict(ckpt)
+        multimodal_dict = get_gt(logger, dataset_multi_test, args, cfg)
+        compute_kde(diffusion, multimodal_dict, model, logger, cfg)        
+        
     else:
         ckpt = torch.load(args.ckpt)
         model.load_state_dict(ckpt)

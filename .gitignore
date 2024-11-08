@@ -23,6 +23,7 @@ __pycache__/
 results/
 
 checkpoints/
+inference/
 
 # Distribution / packaging
 .Python
