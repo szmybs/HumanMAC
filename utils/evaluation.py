@@ -53,7 +53,6 @@ def compute_stats(diffusion, multimodal_dict, model, logger, cfg):
                                                traj_dct_cond,
                                                mode_dict)
         
-        '''
         one_humanmac = OneHumanMAC(diffusion)
         macs, params = profile(one_humanmac, inputs=(traj, cfg, model_select))
         macs, params = clever_format([macs, params], "%.3f")
@@ -61,7 +60,7 @@ def compute_stats(diffusion, multimodal_dict, model, logger, cfg):
         print("params = ", params)
 
         print('warm up ... \n')
-        for _ in range(10):
+        for _ in range(20):
             start = time.time()
             outputs = one_humanmac(traj, cfg, model_select)
             torch.cuda.synchronize()
@@ -71,7 +70,7 @@ def compute_stats(diffusion, multimodal_dict, model, logger, cfg):
         with torch.autograd.profiler.profile(enabled=True, use_cuda=True, record_shapes=False, profile_memory=False) as prof:
             outputs = one_humanmac(traj, cfg, model_select)
         print(prof.key_averages().table(sort_by="cuda_time_total"))  
-        '''
+        
 
         traj_est = torch.matmul(cfg.idct_m_all[:, :cfg.n_pre], sampled_motion)
         # traj_est.shape (K, 125, 48)

@@ -1,7 +1,11 @@
+import sys
+import os
+if __name__ == "__main__":
+    sys.path.append(os.getcwd())
+
 import csv
 import time
 import pandas as pd
-from utils.metrics import *
 from tqdm import tqdm
 from utils import *
 from utils.script import sample_preprocessing
@@ -10,9 +14,11 @@ from abc import ABC
 from typing import Optional, List
 import math
 from torch import Tensor
+import torch
+import numpy as np
 
-from thop import profile
-from thop import clever_format
+# from thop import profile
+# from thop import clever_format
 
 tensor = torch.tensor
 DoubleTensor = torch.DoubleTensor
@@ -40,6 +46,8 @@ def kde(y, y_pred):
                 gt_prob = kernel(y[b, :, t, n, :])
                 kde_ll[b, t, n] = gt_prob
     # mean_kde_ll = torch.mean(kde_ll)
+    kde_ll = torch.where(torch.isnan(kde_ll), torch.full_like(kde_ll, 0.0), kde_ll)
+    kde_ll = torch.where(torch.isinf(kde_ll), torch.full_like(kde_ll, 0.0), kde_ll)
     mean_kde_ll = torch.mean(torch.mean(kde_ll, dim=-1), dim=0)[None]
     return mean_kde_ll
 
@@ -189,10 +197,12 @@ def compute_kde(diffusion, multimodal_dict, model, logger, cfg):
     num_samples = multimodal_dict['num_samples']
     
     K = 1000
-    nll_list = []
-    batch_size = 100
-    iters = math.ceil(num_samples / batch_size)    
+    batch_size = 300
+    iters = math.ceil(num_samples / batch_size)  
+    # iters = 1
     for it in range(iters):
+        nll_list = []
+        
         if (it+1)*batch_size < num_samples:
             gt_group_it = gt_group[it*batch_size:(it+1)*batch_size]
             data_group_it = data_group[it*batch_size:(it+1)*batch_size]
@@ -211,7 +221,7 @@ def compute_kde(diffusion, multimodal_dict, model, logger, cfg):
         pred = pred[:, :, cfg.t_his:, :] 
 
         try:
-            gt_group = torch.from_numpy(gt_group_it).to('cuda')
+            gt_group_it = torch.from_numpy(gt_group_it).to('cuda')
             pred = torch.from_numpy(pred).to('cuda')
         except:
             pass     
@@ -219,16 +229,17 @@ def compute_kde(diffusion, multimodal_dict, model, logger, cfg):
         pred = torch.swapaxes(pred, 0, 1)
         pred = torch.reshape(pred, shape=(pred.shape[0], pred.shape[1], pred.shape[2], -1, 3))
         
-        gt_group = torch.reshape(gt_group, shape=(gt_group.shape[0], gt_group.shape[1], -1, 3))
-        gt_group = gt_group[:, None, ...]
+        gt_group_it = torch.reshape(gt_group_it, shape=(gt_group_it.shape[0], gt_group_it.shape[1], -1, 3))
+        gt_group_it = gt_group_it[:, None, ...]
 
         for idx in range(batch_size):
-            kde_ll = kde(gt_group[idx:idx+1], pred[idx:idx+1])
+            kde_ll = kde(gt_group_it[idx:idx+1], pred[idx:idx+1])
             nll_list.append(kde_ll)
                 
-    kde_ll = torch.cat(nll_list, dim=0).mean(dim=0)
-    kde_ll_np = kde_ll.to('cpu').numpy()
-    print(kde_ll_np) 
+        kde_ll = torch.cat(nll_list, dim=0).mean(dim=0)
+        kde_ll_np = kde_ll.to('cpu').numpy()
+        np.save(os.path.join(os.getcwd(), "kde_results", str(it)+'.npy'), kde_ll_np)
+        print(kde_ll_np) 
     
     
     '''

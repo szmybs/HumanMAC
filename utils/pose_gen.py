@@ -26,6 +26,8 @@ def pose_generator(data_set, model_select, diffusion, cfg, mode=None,
             elif mode == 'zero_shot':
                 data = data_set[np.random.randint(0, data_set.shape[0])].copy()
                 data = np.expand_dims(data, axis=0)
+            elif mode == 'vis':
+                data = data_set.iter_generator(step=25)
             else:
                 raise NotImplementedError(f"unknown pose generator mode: {mode}")
 
@@ -72,3 +74,31 @@ def pose_generator(data_set, model_select, diffusion, cfg, mode=None,
                 draw_order_indicator = j + draw_order_indicator + 2 + 1
 
         yield poses
+
+
+
+def pose_generator_v2(data_set, model_select, diffusion, cfg, mode=None,
+                    action=None, nrow=1):
+            
+    data_gen = data_set.iter_generator(step=25)
+    for i, data in enumerate(data_gen):
+        # gt
+        gt = data[0].copy()
+        gt[:, :1, :] = 0
+        data[:, :, :1, :] = 0
+        
+        gt = np.expand_dims(gt, axis=0)
+        traj_np = gt[..., 1:, :].reshape([gt.shape[0], cfg.t_his + cfg.t_pred, -1])  
+        traj = tensor(traj_np, device=cfg.device, dtype=cfg.dtype)      
+
+        mode_dict, traj_dct, traj_dct_mod = sample_preprocessing(traj, cfg, mode=mode)
+        sampled_motion = diffusion.sample_ddim(model_select,
+                                                traj_dct,
+                                                traj_dct_mod,
+                                                mode_dict)
+
+        traj_est = torch.matmul(cfg.idct_m_all[:, :cfg.n_pre], sampled_motion)
+        traj_est = traj_est.cpu().numpy()
+        traj_est = post_process(traj_est, cfg)
+        
+        yield gt, traj_est

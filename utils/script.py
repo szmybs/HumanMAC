@@ -44,15 +44,15 @@ def create_model_and_diffusion(cfg):
     return model, diffusion
 
 
-def dataset_split(cfg):
+def dataset_split(cfg, action):
     """
     output: dataset_dict, dataset_multi_test
     dataset_dict has two keys: 'train', 'test' for enumeration in train and validation.
     dataset_multi_test is used to create multi-modal data for metrics.
     """
     dataset_cls = DatasetH36M if cfg.dataset == 'h36m' else DatasetHumanEva
-    dataset = dataset_cls('train', cfg.t_his, cfg.t_pred, actions='all')
-    dataset_test = dataset_cls('test', cfg.t_his, cfg.t_pred, actions='all')
+    dataset = dataset_cls('train', cfg.t_his, cfg.t_pred, actions=action)
+    dataset_test = dataset_cls('test', cfg.t_his, cfg.t_pred, actions=action)
 
     dataset_cls_multi = DatasetH36M_multi if cfg.dataset == 'h36m' else DatasetHumanEva_multi
     dataset_multi_test = dataset_cls_multi('test', cfg.t_his, cfg.t_pred,
@@ -241,7 +241,7 @@ def sample_preprocessing(traj, cfg, mode):
                 'sample_num': n,
                 'mode': 'gif'}, traj_dct, traj_dct_mod
 
-    elif mode == 'pred':
+    elif mode == 'pred' or 'vis':
         n = cfg.vis_col
         traj = traj.repeat(n, 1, 1)
 

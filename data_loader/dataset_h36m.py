@@ -5,6 +5,7 @@ https://github.com/wei-mao-2019/gsps/blob/main/motion_pred/utils/dataset_h36m.py
 
 import numpy as np
 import os
+import re
 from data_loader.dataset import Dataset
 from data_loader.skeleton import Skeleton
 
@@ -18,7 +19,8 @@ class DatasetH36M(Dataset):
             self.traj_dim += 3
 
     def prepare_data(self):
-        self.data_file = os.path.join('data', 'data_3d_h36m.npz')
+        self.data_file = os.path.join('data', 'data_3d_h36m_noglobal.npz')
+        # self.data_file = os.path.join('data', 'data_3d_h36m_old.npz')
         self.subjects_split = {'train': [1, 5, 6, 7, 8],
                                'test': [9, 11]}
         self.subjects = ['S%d' % x for x in self.subjects_split[self.mode]]
@@ -35,13 +37,15 @@ class DatasetH36M(Dataset):
 
     def process_data(self):
         data_o = np.load(self.data_file, allow_pickle=True)['positions_3d'].item()
-        self.S1_skeleton = data_o['S1']['Directions'][:1, self.kept_joints].copy()
+        # self.S1_skeleton = data_o['S1']['Directions'][:1, self.kept_joints].copy()
         data_f = dict(filter(lambda x: x[0] in self.subjects, data_o.items()))
         if self.actions != 'all':
             for key in list(data_f.keys()):
-                data_f[key] = dict(filter(lambda x: all([a in x[0] for a in self.actions]), data_f[key].items()))
+                data_f[key] = dict(filter(lambda x: any([a == re.sub(u"([^\u0041-\u005a\u0061-\u007a])", "", x[0]) for a in self.actions]), \
+                                          data_f[key].items()))
                 if len(data_f[key]) == 0:
                     data_f.pop(key)
+                    
         for data_s in data_f.values():
             for action in data_s.keys():
                 seq = data_s[action][:, self.kept_joints, :]

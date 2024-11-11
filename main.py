@@ -2,7 +2,7 @@ import argparse
 import sys
 
 from utils import create_logger, seed_set
-from utils.demo_visualize import demo_visualize
+from utils.demo_visualize import demo_visualize, demo_visualize_v2
 from utils.script import *
 
 sys.path.append(os.getcwd())
@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--cfg',
                         default='h36m', help='h36m or humaneva')
-    parser.add_argument('--mode', default='kde', help='train / eval / pred / switch/ control/ zero_shot')
+    parser.add_argument('--mode', default='vis', help='train / eval / pred / switch/ control/ zero_shot / kde/ vis')
     parser.add_argument('--iter', type=int, default=0)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--device', type=str,
@@ -33,8 +33,9 @@ if __name__ == '__main__':
     parser.add_argument('--ckpt', type=str, default='./checkpoints/h36m_ckpt.pt')
     parser.add_argument('--ema', type=bool, default=True)
     parser.add_argument('--vis_switch_num', type=int, default=10)
-    parser.add_argument('--vis_col', type=int, default=5)
+    parser.add_argument('--vis_col', type=int, default=10)
     parser.add_argument('--vis_row', type=int, default=3)
+    parser.add_argument('--action', type=str, default='directions')
     args = parser.parse_args()
 
     """setup"""
@@ -43,7 +44,10 @@ if __name__ == '__main__':
     cfg = Config(f'{args.cfg}', test=(args.mode != 'train'))
     cfg = update_config(cfg, vars(args))
 
-    dataset, dataset_multi_test = dataset_split(cfg)
+    if args.action != 'all':
+        dataset, dataset_multi_test = dataset_split(cfg, [args.action])
+    else:
+        dataset, dataset_multi_test = dataset_split(cfg)
 
     """logger"""
     tb_logger = SummaryWriter(cfg.tb_dir)
@@ -79,7 +83,12 @@ if __name__ == '__main__':
         ckpt = torch.load(args.ckpt)
         model.load_state_dict(ckpt)
         multimodal_dict = get_gt(logger, dataset_multi_test, args, cfg)
-        compute_kde(diffusion, multimodal_dict, model, logger, cfg)        
+        compute_kde(diffusion, multimodal_dict, model, logger, cfg)
+    
+    elif args.mode == 'vis':        
+        ckpt = torch.load(args.ckpt)
+        model.load_state_dict(ckpt)
+        demo_visualize_v2(args.mode, cfg, model, diffusion, dataset, args.action)
         
     else:
         ckpt = torch.load(args.ckpt)
