@@ -78,8 +78,8 @@ def show3Dpose(skeleton, pose, ax, max_radius, lcolor="#3498db", rcolor="#e74c3c
     tmp_pose = np.copy(pose)
     tmp_pose[1:, :] += tmp_pose[:1, :]
     
-    z_min = np.min(tmp_pose[:, 2])
-    tmp_pose -= np.array([0, 0, z_min])    
+    # z_min = np.min(tmp_pose[:, 2])
+    # tmp_pose -= np.array([0, 0, z_min])    
     
     '''
     inline_colors = {

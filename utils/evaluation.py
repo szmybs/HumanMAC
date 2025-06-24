@@ -66,6 +66,7 @@ def compute_stats(diffusion, multimodal_dict, model, logger, cfg):
             torch.cuda.synchronize()
             end = time.time()
             print('Time:{}ms'.format((end-start)*1000))
+            torch.cuda.empty_cache()
 
         with torch.autograd.profiler.profile(enabled=True, use_cuda=True, record_shapes=False, profile_memory=False) as prof:
             outputs = one_humanmac(traj, cfg, model_select)

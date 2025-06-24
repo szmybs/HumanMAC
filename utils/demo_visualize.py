@@ -113,8 +113,8 @@ def demo_visualize_v2(mode, cfg, model, diffusion, dataset, action):
                 pose = mixtures_lists,
                 type = "3D",
                 lcolor = "#3498db", rcolor = "#e74c3c",
-                # view = (0, -180, -90),
-                view = (-90, -180, -90),
+                # view = (0, -180, -90),      # side
+                view = (-90, -180, -90),    # front
                 titles = None,
                 add_labels = False, 
                 only_pose = True,
@@ -128,8 +128,8 @@ def demo_visualize_v2(mode, cfg, model, diffusion, dataset, action):
                 pose = poses,
                 type = "3D",
                 lcolor = "#3498db", rcolor = "#e74c3c",
-                # view = (0, -180, -90),
-                view = (-90, -180, -90),
+                # view = (0, -180, -90),      # side
+                view = (-90, -180, -90),    # front
                 titles = None,
                 add_labels = False, 
                 only_pose = True,
