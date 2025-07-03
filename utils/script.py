@@ -241,7 +241,7 @@ def sample_preprocessing(traj, cfg, mode):
                 'sample_num': n,
                 'mode': 'gif'}, traj_dct, traj_dct_mod
 
-    elif mode == 'pred' or 'vis':
+    elif mode == 'pred' or mode == 'vis':
         n = cfg.vis_col
         traj = traj.repeat(n, 1, 1)
 

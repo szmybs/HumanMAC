@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--cfg',
                         default='h36m', help='h36m or humaneva')
-    parser.add_argument('--mode', default='kde', help='train / eval / pred / switch/ control/ zero_shot / kde/ vis')
+    parser.add_argument('--mode', default='eval', help='train / eval / pred / switch/ control/ zero_shot / kde/ vis')
     parser.add_argument('--iter', type=int, default=0)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--device', type=str,
