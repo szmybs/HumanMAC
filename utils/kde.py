@@ -196,8 +196,8 @@ def compute_kde(diffusion, multimodal_dict, model, logger, cfg):
     data_group = multimodal_dict['data_group']
     num_samples = multimodal_dict['num_samples']
     
-    K = 1000
-    batch_size = 300
+    K = 10
+    batch_size = 1
     iters = math.ceil(num_samples / batch_size)  
     # iters = 1
     for it in range(iters):
@@ -215,6 +215,21 @@ def compute_kde(diffusion, multimodal_dict, model, logger, cfg):
             # It generates a prediction for all samples in the test set
             # So we need loop for K times
             pred_i_nd = get_prediction(data_group_it, model)   # (1, 5168, 125, 48)
+            
+            '''
+            runtime_cost_list = []
+            for j in range(100):
+                start = time.time()
+                pred_i_nd = get_prediction(data_group_it, model)
+                end = time.time()
+                print('Time:{}ms'.format((end-start)*1000))
+                runtime_cost_list.append((end-start)*1000)
+            runtime_cost = np.array(runtime_cost_list)
+            runtime_mean, runtime_std = np.mean(runtime_cost), np.std(runtime_cost)
+            print(runtime_mean)
+            print(runtime_std)
+            '''
+            
             pred.append(pred_i_nd)
         
         pred = np.concatenate(pred, axis=0) # pred [1000, 5187, 125, 48] in h36m

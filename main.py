@@ -10,7 +10,7 @@ from config import Config, update_config
 import torch
 from tensorboardX import SummaryWriter
 from utils.training import Trainer
-from utils.evaluation import compute_stats
+from utils.evaluation import compute_stats, compute_stats_for_CMD
 from utils.kde import compute_kde
 
 if __name__ == '__main__':
@@ -18,7 +18,7 @@ if __name__ == '__main__':
 
     parser.add_argument('--cfg',
                         default='h36m', help='h36m or humaneva')
-    parser.add_argument('--mode', default='eval', help='train / eval / pred / switch/ control/ zero_shot / kde/ vis')
+    parser.add_argument('--mode', default='CMD', help='train / eval / pred / switch/ control/ zero_shot / kde/ vis /CMD')
     parser.add_argument('--iter', type=int, default=0)
     parser.add_argument('--seed', type=int, default=0)
     parser.add_argument('--device', type=str,
@@ -89,6 +89,15 @@ if __name__ == '__main__':
         ckpt = torch.load(args.ckpt)
         model.load_state_dict(ckpt)
         demo_visualize_v2(args.mode, cfg, model, diffusion, dataset, args.action)
+
+    elif args.mode == 'CMD':
+        ckpt = torch.load(args.ckpt)
+        model.load_state_dict(ckpt)
+        if cfg.dataset == 'amass':
+            multimodal_dict = get_multimodal_gt_full(logger, dataset['test'], args, cfg)
+        else:
+            multimodal_dict = get_multimodal_gt_full(logger, dataset_multi_test, args, cfg)
+        compute_stats_for_CMD(diffusion, multimodal_dict, model, logger, cfg)
         
     else:
         ckpt = torch.load(args.ckpt)

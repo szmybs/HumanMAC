@@ -1,6 +1,10 @@
+"""
+This code is adopted from:
+https://github.com/wei-mao-2019/gsps/blob/main/motion_pred/utils/dataset_h36m_multimodal.py
+"""
+
 import numpy as np
 import os
-import re
 from data_loader.dataset import Dataset
 from data_loader.skeleton import Skeleton
 from utils import util
@@ -24,6 +28,7 @@ class DatasetH36M_multi(Dataset):
             self.traj_dim += 3
 
     def prepare_data(self):
+        # self.data_file = os.path.join('data', 'data_3d_h36m_noglobal.npz')
         self.data_file = os.path.join('data', 'data_3d_h36m_old.npz')
         self.subjects_split = {'train': [1, 5, 6, 7, 8],
                                'test': [9, 11]}
@@ -41,12 +46,12 @@ class DatasetH36M_multi(Dataset):
 
     def process_data(self):
         data_o = np.load(self.data_file, allow_pickle=True)['positions_3d'].item()
-        self.S1_skeleton = data_o['S1']['Directions'][:1, self.kept_joints].copy()
+        # self.S1_skeleton = data_o['S1']['Directions'][:1, self.kept_joints].copy()
         data_f = dict(filter(lambda x: x[0] in self.subjects, data_o.items()))
         if self.actions != 'all':
             for key in list(data_f.keys()):
-                data_f[key] = dict(
-                    filter(lambda x: all([a in str.lower(x[0]) for a in self.actions]), data_f[key].items()))
+                data_f[key] = dict(filter(lambda x: any([a == re.sub(u"([^\u0041-\u005a\u0061-\u007a])", "", x[0]) for a in self.actions]), \
+                                          data_f[key].items()))
                 if len(data_f[key]) == 0:
                     data_f.pop(key)
         # possible candidate
@@ -152,9 +157,9 @@ class DatasetH36M_multi(Dataset):
             traj_multi = np.concatenate(
                 [traj_multi, np.zeros_like(traj[None, ...][[0] * (n_modality - traj_multi.shape[0])])], axis=0)
 
-            return traj[None, ...], traj_multi, action
+            return traj[None, ...], traj_multi
         else:
-            return traj[None, ...], None, action
+            return traj[None, ...], None
 
     def sampling_generator(self, num_samples=1000, batch_size=8, n_modality=5):
         for i in range(num_samples // batch_size):
@@ -168,7 +173,7 @@ class DatasetH36M_multi(Dataset):
             sample_multi = np.concatenate(sample_multi, axis=0)
             yield sample, sample_multi
 
-    def iter_generator(self, step=25, n_modality=10, afg=False):
+    def iter_generator(self, step=25, n_modality=10):
         for sub in self.data.keys():
             data_s = self.data[sub]
             candi_tmp = self.data_candi[sub]
@@ -211,13 +216,8 @@ class DatasetH36M_multi(Dataset):
                             axis=0)
                     else:
                         traj_multi = None
-                    
-                    if afg:
-                        act = str.lower(re.sub(r'[0-9]+', '', act))
-                        act = re.sub(" ", "", act)
-                        yield traj, traj_multi, act
-                    else:
-                        yield traj, traj_multi
+
+                    yield traj, traj_multi
 
 
 if __name__ == '__main__':

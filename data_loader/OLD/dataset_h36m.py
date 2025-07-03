@@ -1,3 +1,8 @@
+"""
+This code is adopted from:
+https://github.com/wei-mao-2019/gsps/blob/main/motion_pred/utils/dataset_h36m.py
+"""
+
 import numpy as np
 import os
 import re
@@ -14,8 +19,8 @@ class DatasetH36M(Dataset):
             self.traj_dim += 3
 
     def prepare_data(self):
-        # self.data_file = os.path.join('data', 'data_3d_h36m.npz')
-        self.data_file = os.path.join('data', 'data_3d_h36m_noglobal.npz')
+        # self.data_file = os.path.join('data', 'data_3d_h36m_noglobal.npz')
+        self.data_file = os.path.join('data', 'data_3d_h36m_old.npz')
         self.subjects_split = {'train': [1, 5, 6, 7, 8],
                                'test': [9, 11]}
         self.subjects = ['S%d' % x for x in self.subjects_split[self.mode]]

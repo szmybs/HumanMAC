@@ -1,3 +1,9 @@
+"""
+This code is adopted from:
+https://github.com/wei-mao-2019/gsps/blob/main/motion_pred/utils/dataset_humaneva_multimodal.py
+"""
+
+
 import numpy as np
 import os
 from data_loader.dataset import Dataset
@@ -130,9 +136,9 @@ class DatasetHumanEva_multi(Dataset):
             traj_multi = np.concatenate(
                 [traj_multi, np.zeros_like(traj[None, ...][[0] * (n_modality - traj_multi.shape[0])])], axis=0)
 
-            return traj[None, ...], traj_multi, action.split()[0]
+            return traj[None, ...], traj_multi
         else:
-            return traj[None, ...], None, action.split()[0]
+            return traj[None, ...], None
 
     def sampling_generator(self, num_samples=1000, batch_size=8, n_modality=5):
         for i in range(num_samples // batch_size):
@@ -192,25 +198,13 @@ class DatasetHumanEva_multi(Dataset):
     #
     #                 yield traj, traj_multi
 
-    def iter_generator(self, step=25, afg=False):
-        # for data_s in self.data.values():
-        #     for seq in data_s.values():
-        #         seq_len = seq.shape[0]
-        #         for i in range(0, seq_len - self.t_total, step):
-        #             traj = seq[None, i: i + self.t_total]
-        #             yield traj, None
-        step = step if step>0 else self.t_his
+    def iter_generator(self, step=25):
         for data_s in self.data.values():
-            for key, seq in data_s.items():
-                _key = key.split()[0]
+            for seq in data_s.values():
                 seq_len = seq.shape[0]
                 for i in range(0, seq_len - self.t_total, step):
                     traj = seq[None, i: i + self.t_total]
-                    if not afg:
-                        yield traj, None
-                    else:
-                        yield traj, None, _key
-                        
+                    yield traj, None
 
 
 if __name__ == '__main__':

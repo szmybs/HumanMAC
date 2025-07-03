@@ -67,15 +67,15 @@ def get_multimodal_gt_full(logger, dataset_multi_test, args, cfg):
     calculate the multi-modal data
     """
     logger.info('preparing full evaluation dataset...')
-    data_group = []
+    data_group, act_group = [], []
     num_samples = 0
-    data_gen_multi_test = dataset_multi_test.iter_generator(step=cfg.t_his)
-    for data, _ in data_gen_multi_test:
+    data_gen_multi_test = dataset_multi_test.iter_generator(step=cfg.t_his, afg=True)
+    for data, _, act  in data_gen_multi_test:
         num_samples += 1
         data_group.append(data)
+        act_group.append(act)
     data_group = np.concatenate(data_group, axis=0)
     all_data = data_group[..., 1:, :].reshape(data_group.shape[0], data_group.shape[1], -1)
-    gt_group = all_data[:, cfg.t_his:, :]
     gt_group = all_data[:, cfg.t_his:, :]
 
     all_start_pose = all_data[:, cfg.t_his - 1, :]
@@ -97,7 +97,8 @@ def get_multimodal_gt_full(logger, dataset_multi_test, args, cfg):
     return {'traj_gt_arr': traj_gt_arr,
             'data_group': data_group,
             'gt_group': gt_group,
-            'num_samples': num_samples}
+            'num_samples': num_samples,
+            'act_group': act_group}
 
 
 def get_gt(logger, dataset_multi_test, args, cfg):

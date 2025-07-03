@@ -1,3 +1,9 @@
+"""
+This code is adopted from:
+https://github.com/wei-mao-2019/gsps/blob/main/motion_pred/utils/dataset_humaneva.py
+"""
+
+
 import numpy as np
 import os
 from data_loader.dataset import Dataset
